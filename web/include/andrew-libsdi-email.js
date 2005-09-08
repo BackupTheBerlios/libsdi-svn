@@ -1,4 +1,3 @@
-<script type='text/javascript'>
 // <!-- 1350685073
 // This script is (C) Copyright 2004 Jim Tucek
 // Leave these comments alone!  For more info, visit
@@ -55,14 +54,3 @@ side = (mission*side) % information;
 }
 return side;
 }
-// -->
-</script>
-
-<!-- Clicking on this link uses javascript to decrypt the email address -->
-<a href='javascript:bend("2424 3344 4258 3018 4385 444 603 2462 955 769 2117 4258 955 636 89 444 4385 1785 4731 4772 2576",5029,3251)'>Click to email me</a>
-
-<BR>- or -<BR>
-
-<!-- Alternativly, you can have the script display the text of your email address -->
-<!-- which is less secure, but it's better than nothing and looks better -->
-Email me at <a href='javascript:bend("2424 3344 4258 3018 4385 444 603 2462 955 769 2117 4258 955 636 89 444 4385 1785 4731 4772 2576",5029,3251)' onMouseOver="self.status=''; return true;" onMouseOut="self.status=' '; return true;"><script type='text/javascript'>build("2424 3344 4258 3018 4385 444 603 2462 955 769 2117 4258 955 636 89 444 4385 1785 4731 4772 2576",5029,3251)</script></a>  (A tad bit less secure, but looks better.  So, the question is whether you're shallow or not. ;)
