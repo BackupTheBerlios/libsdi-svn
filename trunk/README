@@ -1,0 +1,7 @@
+LIBSDI
+
+The libsdi package ecapsulates the Serial Attached SCSI Device
+Interface (SDI) for Linux. Storage management applications can then
+use the API provided by this library to support multiple vendors SAS
+controller's on both 2.4 and 2.6 Linux kernels.
+
