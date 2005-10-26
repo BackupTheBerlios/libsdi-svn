@@ -1,0 +1,998 @@
+
+<html>
+<head>
+<title>../trunk/include/sdi.h</title>
+<meta name="generator" content="c2html 0.9.5">
+<meta name="date" content="2005-10-26T04:21:41+00:00">
+</head>
+
+<body bgcolor="#FFFFFF">
+<pre width="80"><font color="#B22222">/**************************************************************************
+
+Module Name:
+
+   SDI.H
+
+Abstract:
+   
+   This file contains constants and data structure definitions used by
+   drivers that support the SAS Driver Interface specification for SAS
+   or SATA in either the Windows or Linux.
+
+   This should be considered as a reference implementation
+   only. Changes may be necessary to accommodate a specific build
+   environment or target OS.
+
+**************************************************************************/</font>
+
+<font color="#A020F0">#ifndef _SDI_H_</font>
+<strong><font color="#228B22">#define _SDI_H_</font></strong>
+
+
+
+// SDI Specification Revision, the intent is that all versions of the
+// specification will be backward compatible after the 1.00 release.
+// Major revision number, corresponds to xxxx. of SDI specification
+// Minor revision number, corresponds to .xxxx of SDI specification
+<strong><font color="#228B22">#define SDI_MAJOR_REVISION    0</font></strong>
+<strong><font color="#228B22">#define SDI_MINOR_REVISION    82</font></strong>
+
+<font color="#B22222">/*************************************************************************/</font>
+<font color="#B22222">/* TARGET OS LINUX SPECIFIC CODE                                         */</font>
+<font color="#B22222">/*************************************************************************/</font>
+
+<font color="#A020F0">#ifdef __linux</font>
+// Linux base types
+<font color="#A020F0">#include &lt;linux/types.h&gt;</font>
+
+<font color="#A020F0">#ifndef __i8</font>
+<strong><font color="#228B22">#define __i8 __s8</font></strong>
+<font color="#A020F0">#endif</font>
+
+// pack definition
+
+<strong><font color="#228B22">#define SDI_BEGIN_PACK(x)    pack(x)</font></strong>
+<strong><font color="#228B22">#define SDI_END_PACK         pack()</font></strong>
+
+// IOCTL Control Codes
+// used as the ioctl() request parameter
+// Control Codes requiring SDI_ALL_SIGNATURE
+
+<strong><font color="#228B22">#define CC_SDI_GET_DRIVER_INFO    0xCC770001</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_CNTLR_CONFIG   0xCC770002</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_CNTLR_STATUS   0xCC770003</font></strong>
+<strong><font color="#228B22">#define CC_SDI_FIRMWARE_DOWNLOAD  0xCC770004</font></strong>
+
+// Control Codes requiring SDI_RAID_SIGNATURE
+<strong><font color="#228B22">#define CC_SDI_GET_RAID_INFO      0xCC77000A</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_RAID_CONFIG    0xCC77000B</font></strong>
+
+// Control Codes requiring SDI_SIGNATURE
+<strong><font color="#228B22">#define CC_SDI_GET_PHY_INFO       0xCC770014</font></strong>
+<strong><font color="#228B22">#define CC_SDI_SET_PHY_INFO       0xCC770015</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_LINK_ERRORS    0xCC770016</font></strong>
+<strong><font color="#228B22">#define CC_SDI_SMP_PASSTHROUGH    0xCC770017</font></strong>
+<strong><font color="#228B22">#define CC_SDI_SSP_PASSTHROUGH    0xCC770018</font></strong>
+<strong><font color="#228B22">#define CC_SDI_STP_PASSTHROUGH    0xCC770019</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_SATA_SIGNATURE 0xCC770020</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_SCSI_ADDRESS   0xCC770021</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_DEVICE_ADDRESS 0xCC770022</font></strong>
+<strong><font color="#228B22">#define CC_SDI_TASK_MANAGEMENT    0xCC770023</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_CONNECTOR_INFO 0xCC770024</font></strong>
+
+// Control Codes requiring SDI_PHY_SIGNATURE
+<strong><font color="#228B22">#define CC_SDI_PHY_CONTROL        0xCC77003C</font></strong>
+
+<font color="#A020F0">#pragma SDI_BEGIN_PACK(8)</font>
+
+// IOCTL_HEADER
+<font color="#4169E1"><a name="_IOCTL_HEADER"></a>typedef struct _IOCTL_HEADER </font>{
+   __u32 IOControllerNumber;// FIXFIX add a space
+__u32 Length;
+__u32 ReturnCode;
+__u32 Timeout;
+__u16 Direction;
+} IOCTL_HEADER, *PIOCTL_HEADER;
+<font color="#A020F0">#pragma SDI_END_PACK</font>
+
+<font color="#A020F0">#endif  //# linux</font>
+
+<font color="#B22222">/*************************************************************************/</font>
+<font color="#B22222">/* TARGET OS WINDOWS SPECIFIC CODE                                        */</font>
+<font color="#B22222">/*************************************************************************/</font>
+
+<font color="#A020F0">#ifdef _WIN32</font>
+
+// windows IOCTL definitions
+
+<font color="#A020F0">#ifndef _NTDDSCSIH_</font>
+<font color="#A020F0">#include &lt;ntddscsi.h&gt;</font>
+<font color="#A020F0">#endif</font>
+
+// pack definition
+
+<font color="#A020F0">#if defined _MSC_VER</font>
+<strong><font color="#228B22">   #define SDI_BEGIN_PACK(x)    pack(push,x)</font></strong>
+<strong><font color="#228B22">   #define SDI_END_PACK         pack(pop)</font></strong>
+<font color="#A020F0">#elif defined __BORLANDC__</font>
+<strong><font color="#228B22">   #define SDI_BEGIN_PACK(x)    option -a##x</font></strong>
+<strong><font color="#228B22">   #define SDI_END_PACK         option -a.</font></strong>
+<font color="#A020F0">#else</font>
+<font color="#A020F0">   #error </font><font color="#666666">"SDISAS.H - Must externally define a pack compiler designator."</font><font color="#A020F0"></font>
+<font color="#A020F0">#endif</font>
+
+// base types
+
+<strong><font color="#228B22">#define __u8    unsigned char</font></strong>
+<strong><font color="#228B22">#define __u32   unsigned long</font></strong>
+<strong><font color="#228B22">#define __u16   unsigned short</font></strong>
+
+<strong><font color="#228B22">#define __i8    char</font></strong>
+
+// IOCTL Control Codes
+// (IoctlHeader.ControlCode)
+
+// Control Codes requiring SDI_ALL_SIGNATURE
+<strong><font color="#228B22">#define CC_SDI_GET_DRIVER_INFO     1</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_CNTLR_CONFIG    2</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_CNTLR_STATUS    3</font></strong>
+<strong><font color="#228B22">#define CC_SDI_FIRMWARE_DOWNLOAD   4</font></strong>
+
+// Control Codes requiring SDI_RAID_SIGNATURE
+<strong><font color="#228B22">#define CC_SDI_GET_RAID_INFO       10</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_RAID_CONFIG     11</font></strong>
+
+// Control Codes requiring SDI_SIGNATURE
+<strong><font color="#228B22">#define CC_SDI_GET_PHY_INFO        20</font></strong>
+<strong><font color="#228B22">#define CC_SDI_SET_PHY_INFO        21</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_LINK_ERRORS     22</font></strong>
+<strong><font color="#228B22">#define CC_SDI_SMP_PASSTHROUGH     23</font></strong>
+<strong><font color="#228B22">#define CC_SDI_SSP_PASSTHROUGH     24</font></strong>
+<strong><font color="#228B22">#define CC_SDI_STP_PASSTHROUGH     25</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_SATA_SIGNATURE  26</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_SCSI_ADDRESS    27</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_DEVICE_ADDRESS  28</font></strong>
+<strong><font color="#228B22">#define CC_SDI_TASK_MANAGEMENT     29</font></strong>
+<strong><font color="#228B22">#define CC_SDI_GET_CONNECTOR_INFO  30</font></strong>
+
+// Control Codes requiring SDI_PHY_SIGNATURE
+<strong><font color="#228B22">#define CC_SDI_PHY_CONTROL         60</font></strong>
+
+<strong><font color="#228B22">#define IOCTL_HEADER SRB_IO_CONTROL</font></strong>
+<strong><font color="#228B22">#define PIOCTL_HEADER PSRB_IO_CONTROL</font></strong>
+
+<font color="#A020F0">#endif //# _WIN32</font>
+
+<font color="#B22222">/*************************************************************************/</font>
+<font color="#B22222">/* TARGET OS NOT DEFINED ERROR                                           */</font>
+<font color="#B22222">/*************************************************************************/</font>
+
+<font color="#A020F0">#if (!_WIN32 &amp;&amp; !__linux)</font>
+<font color="#A020F0">   #error </font><font color="#666666">"Unknown target OS."</font><font color="#A020F0"></font>
+<font color="#A020F0">#endif</font>
+
+<font color="#B22222">/*************************************************************************/</font>
+<font color="#B22222">/* OS INDEPENDENT CODE                                                   */</font>
+<font color="#B22222">/*************************************************************************/</font>
+
+<font color="#B22222">/* * * * * * * * * * Class Independent IOCTL Constants * * * * * * * * * */</font>
+
+// Return codes <font color="#4169E1">for</font> all IOCTL's regardless of class
+// (IoctlHeader.ReturnCode)
+
+<strong><font color="#228B22">#define SDI_STATUS_SUCCESS              0</font></strong>
+<strong><font color="#228B22">#define SDI_STATUS_FAILED               1</font></strong>
+<strong><font color="#228B22">#define SDI_STATUS_BAD_CNTL_CODE        2</font></strong>
+<strong><font color="#228B22">#define SDI_STATUS_INVALID_PARAMETER    3</font></strong>
+<strong><font color="#228B22">#define SDI_STATUS_WRITE_ATTEMPTED      4</font></strong>
+
+// Signature value
+// (IoctlHeader.Signature)
+
+<strong><font color="#228B22">#define SDI_ALL_SIGNATURE    </font><font color="#666666">"SDIALL"</font><font color="#228B22"></font></strong>
+
+// Timeout value <font color="#4169E1">default</font> of 60 seconds
+// (IoctlHeader.Timeout)
+
+<strong><font color="#228B22">#define SDI_ALL_TIMEOUT      60</font></strong>
+
+// Direction values <font color="#4169E1">for</font> data flow on this IOCTL
+// (IoctlHeader.Direction, Linux only)
+<strong><font color="#228B22">#define SDI_DATA_READ     0</font></strong>
+<strong><font color="#228B22">#define SDI_DATA_WRITE    1</font></strong>
+
+// I/O Bus Types
+// ISA and EISA bus types are not supported
+// (bIoBusType)
+
+<strong><font color="#228B22">#define SDI_BUS_TYPE_PCI        3</font></strong>
+<strong><font color="#228B22">#define SDI_BUS_TYPE_PCMCIA     4</font></strong>
+
+// Controller Status
+// (uStatus)
+
+<strong><font color="#228B22">#define SDI_CNTLR_STATUS_GOOD      1</font></strong>
+<strong><font color="#228B22">#define SDI_CNTLR_STATUS_FAILED    2</font></strong>
+<strong><font color="#228B22">#define SDI_CNTLR_STATUS_OFFLINE   3</font></strong>
+<strong><font color="#228B22">#define SDI_CNTLR_STATUS_POWEROFF  4</font></strong>
+
+// Offline Status Reason
+
+// (uOfflineReason)
+<strong><font color="#228B22">#define SDI_OFFLINE_REASON_NO_REASON             0</font></strong>
+<strong><font color="#228B22">#define SDI_OFFLINE_REASON_INITIALIZING          1</font></strong>
+<strong><font color="#228B22">#define SDI_OFFLINE_REASON_BACKSIDE_BUS_DEGRADED 2</font></strong>
+<strong><font color="#228B22">#define SDI_OFFLINE_REASON_BACKSIDE_BUS_FAILURE  3</font></strong>
+
+// Controller Class
+// (bControllerClass)
+
+<strong><font color="#228B22">#define SDI_CNTLR_CLASS_HBA     5</font></strong>
+
+// Controller Flag bits
+// (uControllerFlags)
+
+<strong><font color="#228B22">#define SDI_CNTLR_SAS_HBA    0x00000001</font></strong>
+<strong><font color="#228B22">#define SDI_CNTLR_SAS_RAID   0x00000002</font></strong>
+<strong><font color="#228B22">#define SDI_CNTLR_SATA_HBA   0x00000004</font></strong>
+<strong><font color="#228B22">#define SDI_CNTLR_SATA_RAID  0x00000008</font></strong>
+
+// <font color="#4169E1">for</font> firmware download
+<strong><font color="#228B22">#define SDI_CNTLR_FWD_SUPPORT   0x00010000</font></strong>
+<strong><font color="#228B22">#define SDI_CNTLR_FWD_ONLINE    0x00020000</font></strong>
+<strong><font color="#228B22">#define SDI_CNTLR_FWD_SRESET    0x00040000</font></strong>
+<strong><font color="#228B22">#define SDI_CNTLR_FWD_HRESET    0x00080000</font></strong>
+<strong><font color="#228B22">#define SDI_CNTLR_FWD_RROM      0x00100000</font></strong>
+
+// Download Flag bits
+// (uDownloadFlags)
+<strong><font color="#228B22">#define SDI_FWD_VALIDATE        0x00000001</font></strong>
+<strong><font color="#228B22">#define SDI_FWD_SOFT_RESET      0x00000002</font></strong>
+<strong><font color="#228B22">#define SDI_FWD_HARD_RESET      0x00000004</font></strong>
+
+// Firmware Download Status
+// (usStatus)
+<strong><font color="#228B22">#define SDI_FWD_SUCCESS         0</font></strong>
+<strong><font color="#228B22">#define SDI_FWD_FAILED          1</font></strong>
+<strong><font color="#228B22">#define SDI_FWD_USING_RROM      2</font></strong>
+<strong><font color="#228B22">#define SDI_FWD_REJECT          3</font></strong>
+<strong><font color="#228B22">#define SDI_FWD_DOWNREV         4</font></strong>
+
+// Firmware Download Severity
+// (usSeverity&gt;
+<strong><font color="#228B22">#define SDI_FWD_INFORMATION     0</font></strong>
+<strong><font color="#228B22">#define SDI_FWD_WARNING         1</font></strong>
+<strong><font color="#228B22">#define SDI_FWD_ERROR           2</font></strong>
+<strong><font color="#228B22">#define SDI_FWD_FATAL           3</font></strong>
+
+<font color="#B22222">/* * * * * * * * * * SAS RAID Class IOCTL Constants * * * * * * * * */</font>
+
+// Return codes <font color="#4169E1">for</font> the RAID IOCTL's regardless of class
+// (IoctlHeader.ControlCode)
+
+<strong><font color="#228B22">#define SDI_RAID_SET_OUT_OF_RANGE       1000</font></strong>
+
+// Signature value
+// (IoctlHeader.Signature)
+
+<strong><font color="#228B22">#define SDI_RAID_SIGNATURE     </font><font color="#666666">"SDIARY"</font><font color="#228B22"></font></strong>
+
+// Timeout value <font color="#4169E1">default</font> of 60 seconds
+// (IoctlHeader.Timeout)
+
+<strong><font color="#228B22">#define SDI_RAID_TIMEOUT       60</font></strong>
+
+// RAID Types
+// (bRaidType)
+<strong><font color="#228B22">#define SDI_RAID_TYPE_NONE      0</font></strong>
+<strong><font color="#228B22">#define SDI_RAID_TYPE_0         1</font></strong>
+<strong><font color="#228B22">#define SDI_RAID_TYPE_1         2</font></strong>
+<strong><font color="#228B22">#define SDI_RAID_TYPE_10        3</font></strong>
+<strong><font color="#228B22">#define SDI_RAID_TYPE_5         4</font></strong>
+<strong><font color="#228B22">#define SDI_RAID_TYPE_15        5</font></strong>
+<strong><font color="#228B22">#define SDI_RAID_TYPE_6         6</font></strong>
+<strong><font color="#228B22">#define SDI_RAID_TYPE_OTHER     255</font></strong>
+
+// RAID Status
+// (bStatus)
+<strong><font color="#228B22">#define SDI_RAID_SET_STATUS_OK          0</font></strong>
+<strong><font color="#228B22">#define SDI_RAID_SET_STATUS_DEGRADED    1</font></strong>
+<strong><font color="#228B22">#define SDI_RAID_SET_STATUS_REBUILDING  2</font></strong>
+<strong><font color="#228B22">#define SDI_RAID_SET_STATUS_FAILED      3</font></strong>
+
+// RAID Drive Status
+// (bDriveStatus)
+<strong><font color="#228B22">#define SDI_DRIVE_STATUS_OK           0</font></strong>
+<strong><font color="#228B22">#define SDI_DRIVE_STATUS_REBUILDING   1</font></strong>
+<strong><font color="#228B22">#define SDI_DRIVE_STATUS_FAILED       2</font></strong>
+<strong><font color="#228B22">#define SDI_DRIVE_STATUS_DEGRADED     3</font></strong>
+
+// RAID Drive Usage
+// (bDriveUsage)
+<strong><font color="#228B22">#define SDI_DRIVE_CONFIG_NOT_USED   0</font></strong>
+<strong><font color="#228B22">#define SDI_DRIVE_CONFIG_MEMBER     1</font></strong>
+<strong><font color="#228B22">#define SDI_DRIVE_CONFIG_SPARE      2</font></strong>
+
+<font color="#B22222">/* * * * * * * * * * SAS HBA Class IOCTL Constants * * * * * * * * * */</font>
+
+// Return codes <font color="#4169E1">for</font> SAS IOCTL's
+// (IoctlHeader.ReturnCode)
+<strong><font color="#228B22">#define SDI_PHY_INFO_CHANGED             SDI_STATUS_SUCCESS</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_INFO_NOT_CHANGEABLE      2000</font></strong>
+<strong><font color="#228B22">#define SDI_LINK_RATE_OUT_OF_RANGE       2001</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_DOES_NOT_EXIST           2002</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_DOES_NOT_MATCH_PORT      2003</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_CANNOT_BE_SELECTED       2004</font></strong>
+<strong><font color="#228B22">#define SDI_SELECT_PHY_OR_PORT           2005</font></strong>
+<strong><font color="#228B22">#define SDI_PORT_DOES_NOT_EXIST          2006</font></strong>
+<strong><font color="#228B22">#define SDI_PORT_CANNOT_BE_SELECTED      2007</font></strong>
+<strong><font color="#228B22">#define SDI_CONNECTION_FAILED            2008</font></strong>
+
+<strong><font color="#228B22">#define SDI_NO_SATA_DEVICE               2009</font></strong>
+<strong><font color="#228B22">#define SDI_NO_SATA_SIGNATURE            2010</font></strong>
+<strong><font color="#228B22">#define SDI_SCSI_EMULATION               2011</font></strong>
+<strong><font color="#228B22">#define SDI_NOT_AN_END_DEVICE            2012</font></strong>
+<strong><font color="#228B22">#define SDI_NO_SCSI_ADDRESS              2013</font></strong>
+<strong><font color="#228B22">#define SDI_NO_DEVICE_ADDRESS            2014</font></strong>
+
+// Signature value
+// (IoctlHeader.Signature)
+<strong><font color="#228B22">#define SDI_SIGNATURE     </font><font color="#666666">"SDISAS"</font><font color="#228B22"></font></strong>
+
+// Timeout value <font color="#4169E1">default</font> of 60 seconds
+// (IoctlHeader.Timeout)
+
+<strong><font color="#228B22">#define SDI_TIMEOUT       60</font></strong>
+
+// Device types
+// (bDeviceType)
+<strong><font color="#228B22">#define SDI_PHY_UNUSED                0x00</font></strong>
+<strong><font color="#228B22">#define SDI_NO_DEVICE_ATTACHED        0x00</font></strong>
+<strong><font color="#228B22">#define SDI_END_DEVICE                0x10</font></strong>
+<strong><font color="#228B22">#define SDI_EDGE_EXPANDER_DEVICE      0x20</font></strong>
+<strong><font color="#228B22">#define SDI_FANOUT_EXPANDER_DEVICE    0x30</font></strong>
+
+// Protocol options
+// (bInitiatorPortProtocol,  bTargetPortProtocol)
+<strong><font color="#228B22">#define SDI_PROTOCOL_SATA    0x01</font></strong>
+<strong><font color="#228B22">#define SDI_PROTOCOL_SMP     0x02</font></strong>
+<strong><font color="#228B22">#define SDI_PROTOCOL_STP     0x04</font></strong>
+<strong><font color="#228B22">#define SDI_PROTOCOL_SSP     0x08</font></strong>
+
+// Negotiated and hardware link rates
+// (bNegotiatedLinkRate, bMinimumLinkRate, bMaximumLinkRate)
+<strong><font color="#228B22">#define SDI_LINK_RATE_UNKNOWN   0x00</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_DISABLED        0x01</font></strong>
+<strong><font color="#228B22">#define SDI_LINK_RATE_FAILED    0x02</font></strong>
+<strong><font color="#228B22">#define SDI_SATA_SPINUP_HOLD    0x03</font></strong>
+<strong><font color="#228B22">#define SDI_SATA_PORT_SELECTOR  0x04</font></strong>
+<strong><font color="#228B22">#define SDI_LINK_RATE_1_5_GBPS  0x08</font></strong>
+<strong><font color="#228B22">#define SDI_LINK_RATE_3_0_GBPS  0x09</font></strong>
+<strong><font color="#228B22">#define SDI_LINK_VIRTUAL        0x10</font></strong>
+
+// Discover state
+// (bAutoDiscover)
+<strong><font color="#228B22">#define SDI_DISCOVER_NOT_SUPPORTED    0x00</font></strong>
+<strong><font color="#228B22">#define SDI_DISCOVER_NOT_STARTED      0x01</font></strong>
+<strong><font color="#228B22">#define SDI_DISCOVER_IN_PROGRESS      0x02</font></strong>
+<strong><font color="#228B22">#define SDI_DISCOVER_COMPLETE         0x03</font></strong>
+<strong><font color="#228B22">#define SDI_DISCOVER_ERROR            0x04</font></strong>
+
+// Programmed link rates
+// (bMinimumLinkRate, bMaximumLinkRate)
+// (bProgrammedMinimumLinkRate, bProgrammedMaximumLinkRate)
+<strong><font color="#228B22">#define SDI_PROGRAMMED_LINK_RATE_UNCHANGED 0x00</font></strong>
+<strong><font color="#228B22">#define SDI_PROGRAMMED_LINK_RATE_1_5_GBPS  0x08</font></strong>
+<strong><font color="#228B22">#define SDI_PROGRAMMED_LINK_RATE_3_0_GBPS  0x09</font></strong>
+
+// Link rate
+// (bNegotiatedLinkRate in SDI_SET_PHY_INFO)
+<strong><font color="#228B22">#define SDI_LINK_RATE_NEGOTIATE       0x00</font></strong>
+<strong><font color="#228B22">#define SDI_LINK_RATE_PHY_DISABLED    0x01</font></strong>
+
+// Signal class
+// (bSignalClass in SDI_SET_PHY_INFO)
+<strong><font color="#228B22">#define SDI_SIGNAL_CLASS_UNKNOWN      0x00</font></strong>
+<strong><font color="#228B22">#define SDI_SIGNAL_CLASS_DIRECT       0x01</font></strong>
+<strong><font color="#228B22">#define SDI_SIGNAL_CLASS_SERVER       0x02</font></strong>
+<strong><font color="#228B22">#define SDI_SIGNAL_CLASS_ENCLOSURE    0x03</font></strong>
+
+// Link error reset
+// (bResetCounts)
+<strong><font color="#228B22">#define SDI_LINK_ERROR_DONT_RESET_COUNTS   0x00</font></strong>
+<strong><font color="#228B22">#define SDI_LINK_ERROR_RESET_COUNTS        0x01</font></strong>
+
+// Phy identifier
+// (bPhyIdentifier)
+<strong><font color="#228B22">#define SDI_USE_PORT_IDENTIFIER    0xFF</font></strong>
+
+// Port identifier
+// (bPortIdentifier)
+<strong><font color="#228B22">#define SDI_IGNORE_PORT            0xFF</font></strong>
+
+// Programmed link rates
+// (bConnectionRate)
+<strong><font color="#228B22">#define SDI_LINK_RATE_NEGOTIATED   0x00</font></strong>
+<strong><font color="#228B22">#define SDI_LINK_RATE_1_5_GBPS     0x08</font></strong>
+<strong><font color="#228B22">#define SDI_LINK_RATE_3_0_GBPS     0x09</font></strong>
+
+// Connection status
+// (bConnectionStatus)
+<strong><font color="#228B22">#define SDI_OPEN_ACCEPT                          0</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_BAD_DESTINATION          1</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_RATE_NOT_SUPPORTED       2</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_NO_DESTINATION           3</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_PATHWAY_BLOCKED          4</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_PROTOCOL_NOT_SUPPORTED   5</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_RESERVE_ABANDON          6</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_RESERVE_CONTINUE         7</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_RESERVE_INITIALIZE       8</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_RESERVE_STOP             9</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_RETRY                    10</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_STP_RESOURCES_BUSY       11</font></strong>
+<strong><font color="#228B22">#define SDI_OPEN_REJECT_WRONG_DESTINATION        12</font></strong>
+
+// SSP Flags
+// (uFlags)
+<strong><font color="#228B22">#define SDI_SSP_READ                           0x00000001</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_WRITE                          0x00000002</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_UNSPECIFIED                    0x00000004</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_TASK_ATTRIBUTE_SIMPLE          0x00000000</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_TASK_ATTRIBUTE_HEAD_OF_QUEUE   0x00000010</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_TASK_ATTRIBUTE_ORDERED         0x00000020</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_TASK_ATTRIBUTE_ACA             0x00000040</font></strong>
+
+// SSP Data present
+// (bDataPresent)
+<strong><font color="#228B22">#define SDI_SSP_NO_DATA_PRESENT          0x00</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_RESPONSE_DATA_PRESENT    0x01</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_SENSE_DATA_PRESENT       0x02</font></strong>
+
+// STP Flags
+// (uFlags)
+<strong><font color="#228B22">#define SDI_STP_READ            0x00000001</font></strong>
+<strong><font color="#228B22">#define SDI_STP_WRITE           0x00000002</font></strong>
+<strong><font color="#228B22">#define SDI_STP_UNSPECIFIED     0x00000004</font></strong>
+<strong><font color="#228B22">#define SDI_STP_PIO             0x00000010</font></strong>
+<strong><font color="#228B22">#define SDI_STP_DMA             0x00000020</font></strong>
+<strong><font color="#228B22">#define SDI_STP_PACKET          0x00000040</font></strong>
+<strong><font color="#228B22">#define SDI_STP_DMA_QUEUED      0x00000080</font></strong>
+<strong><font color="#228B22">#define SDI_STP_EXECUTE_DIAG    0x00000100</font></strong>
+<strong><font color="#228B22">#define SDI_STP_RESET_DEVICE    0x00000200</font></strong>
+
+// Task Management Flags
+// (uFlags)
+<strong><font color="#228B22">#define SDI_TASK_IU                0x00000001</font></strong>
+<strong><font color="#228B22">#define SDI_HARD_RESET_SEQUENCE    0x00000002</font></strong>
+<strong><font color="#228B22">#define SDI_SUPPRESS_RESULT        0x00000004</font></strong>
+
+// Task Management Functions
+// (bTaskManagement)
+<strong><font color="#228B22">#define SDI_SSP_ABORT_TASK            0x01</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_ABORT_TASK_SET        0x02</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_CLEAR_TASK_SET        0x04</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_LOGICAL_UNIT_RESET    0x08</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_CLEAR_ACA             0x40</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_QUERY_TASK            0x80</font></strong>
+
+// Task Management Information
+// (uInformation)
+<strong><font color="#228B22">#define SDI_SSP_TEST            1</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_EXCEEDED        2</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_DEMAND          3</font></strong>
+<strong><font color="#228B22">#define SDI_SSP_TRIGGER         4</font></strong>
+
+// Connector Pinout Information
+// (uPinout)
+<strong><font color="#228B22">#define SDI_CON_UNKNOWN               0x00000001</font></strong>
+<strong><font color="#228B22">#define SDI_CON_SFF_8482              0x00000002</font></strong>
+<strong><font color="#228B22">#define SDI_CON_SFF_8470_LANE_1       0x00000100</font></strong>
+<strong><font color="#228B22">#define SDI_CON_SFF_8470_LANE_2       0x00000200</font></strong>
+<strong><font color="#228B22">#define SDI_CON_SFF_8470_LANE_3       0x00000400</font></strong>
+<strong><font color="#228B22">#define SDI_CON_SFF_8470_LANE_4       0x00000800</font></strong>
+<strong><font color="#228B22">#define SDI_CON_SFF_8484_LANE_1       0x00010000</font></strong>
+<strong><font color="#228B22">#define SDI_CON_SFF_8484_LANE_2       0x00020000</font></strong>
+<strong><font color="#228B22">#define SDI_CON_SFF_8484_LANE_3       0x00040000</font></strong>
+<strong><font color="#228B22">#define SDI_CON_SFF_8484_LANE_4       0x00080000</font></strong>
+
+// Connector Location Information
+// (bLocation)
+
+// same as uPinout above...
+// #define SDI_CON_UNKNOWN                0x01
+<strong><font color="#228B22">#define SDI_CON_INTERNAL               0x02</font></strong>
+<strong><font color="#228B22">#define SDI_CON_EXTERNAL               0x04</font></strong>
+<strong><font color="#228B22">#define SDI_CON_SWITCHABLE             0x08</font></strong>
+<strong><font color="#228B22">#define SDI_CON_AUTO                   0x10</font></strong>
+<strong><font color="#228B22">#define SDI_CON_NOT_PRESENT            0x20</font></strong>
+<strong><font color="#228B22">#define SDI_CON_NOT_CONNECTED          0x80</font></strong>
+
+<font color="#B22222">/* * * * * * * * SAS Phy Control Class IOCTL Constants * * * * * * * * */</font>
+
+// Return codes <font color="#4169E1">for</font> SAS Phy Control IOCTL's
+// (IoctlHeader.ReturnCode)
+
+// Signature value
+// (IoctlHeader.Signature)
+<strong><font color="#228B22">#define SDI_PHY_SIGNATURE     </font><font color="#666666">"SDIPHY"</font><font color="#228B22"></font></strong>
+
+// Phy Control Functions
+// (bFunction)
+
+// values 0x00 to 0xFF are consistent in definition with the SMP PHY CONTROL
+// function defined in the SAS spec
+<strong><font color="#228B22">#define SDI_PC_NOP                     0x00000000</font></strong>
+<strong><font color="#228B22">#define SDI_PC_LINK_RESET              0x00000001</font></strong>
+<strong><font color="#228B22">#define SDI_PC_HARD_RESET              0x00000002</font></strong>
+<strong><font color="#228B22">#define SDI_PC_PHY_DISABLE             0x00000003</font></strong>
+// 0x04 to 0xFF reserved...
+<strong><font color="#228B22">#define SDI_PC_GET_PHY_SETTINGS        0x00000100</font></strong>
+
+// Link Flags
+<strong><font color="#228B22">#define SDI_PHY_ACTIVATE_CONTROL       0x00000001</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_UPDATE_SPINUP_RATE     0x00000002</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_AUTO_COMWAKE           0x00000004</font></strong>
+
+// Device Types <font color="#4169E1">for</font> Phy Settings
+// (bType)
+<strong><font color="#228B22">#define SDI_UNDEFINED  0x00</font></strong>
+<strong><font color="#228B22">#define SDI_SATA       0x01</font></strong>
+<strong><font color="#228B22">#define SDI_SAS        0x02</font></strong>
+
+// Transmitter Flags
+// (uTransmitterFlags)
+<strong><font color="#228B22">#define SDI_PHY_PREEMPHASIS_DISABLED      0x00000001</font></strong>
+
+// Receiver Flags
+// (uReceiverFlags)
+<strong><font color="#228B22">#define SDI_PHY_EQUALIZATION_DISABLED     0x00000001</font></strong>
+
+// Pattern Flags
+// (uPatternFlags)
+// #define SDI_PHY_ACTIVATE_CONTROL      0x00000001
+<strong><font color="#228B22">#define SDI_PHY_DISABLE_SCRAMBLING       0x00000002</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_DISABLE_ALIGN            0x00000004</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_DISABLE_SSC              0x00000008</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_FIXED_PATTERN            0x00000010</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_USER_PATTERN             0x00000020</font></strong>
+
+// Fixed Patterns
+// (bFixedPattern)
+<strong><font color="#228B22">#define SDI_PHY_CJPAT                    0x00000001</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_ALIGN                    0x00000002</font></strong>
+
+// Type Flags
+// (bTypeFlags)
+<strong><font color="#228B22">#define SDI_PHY_POSITIVE_DISPARITY       0x01</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_NEGATIVE_DISPARITY       0x02</font></strong>
+<strong><font color="#228B22">#define SDI_PHY_CONTROL_CHARACTER        0x04</font></strong>
+
+// Miscellaneous
+<strong><font color="#228B22">#define SLOT_NUMBER_UNKNOWN   0xFFFF</font></strong>
+
+<font color="#B22222">/*************************************************************************/</font>
+<font color="#B22222">/* DATA STRUCTURES                                                       */</font>
+<font color="#B22222">/*************************************************************************/</font>
+
+<font color="#B22222">/* * * * * * * * * * Class Independent Structures * * * * * * * * * */</font>
+
+<font color="#A020F0">#pragma SDI_BEGIN_PACK(8)</font>
+
+// CC_SDI_DRIVER_INFO
+<font color="#4169E1"><a name="_SDI_DRIVER_INFO"></a>typedef struct _SDI_DRIVER_INFO </font>{
+   __u8 szName[81];
+   __u8 szDescription[81];
+   __u16 usMajorRevision;
+   __u16 usMinorRevision;
+   __u16 usBuildRevision;
+   __u16 usReleaseRevision;
+   __u16 usSDIMajorRevision;
+   __u16 usSDIMinorRevision;
+} SDI_DRIVER_INFO, *PSDI_DRIVER_INFO;
+
+<font color="#4169E1"><a name="_SDI_DRIVER_INFO_BUFFER"></a>typedef struct _SDI_DRIVER_INFO_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_DRIVER_INFO Information;
+} SDI_DRIVER_INFO_BUFFER, *PSDI_DRIVER_INFO_BUFFER;
+
+// CC_SDI_CNTLR_CONFIGURATION
+<font color="#4169E1"><a name="_SDI_PCI_BUS_ADDRESS"></a>typedef struct _SDI_PCI_BUS_ADDRESS </font>{
+   __u8 bBusNumber;
+   __u8 bDeviceNumber;
+   __u8 bFunctionNumber;
+   __u8 bReserved;
+} SDI_PCI_BUS_ADDRESS, *PSDI_PCI_BUS_ADDRESS;
+
+<font color="#4169E1">typedef</font> <font color="#4169E1">union</font> _SDI_IO_BUS_ADDRESS {
+   SDI_PCI_BUS_ADDRESS PciAddress;
+   __u8 bReserved[32];
+} SDI_IO_BUS_ADDRESS, *PSDI_IO_BUS_ADDRESS;
+
+<font color="#4169E1"><a name="_SDI_CNTLR_CONFIG"></a>typedef struct _SDI_CNTLR_CONFIG </font>{
+   __u32 uBaseIoAddress;
+   <font color="#4169E1">struct</font> {
+      __u32 uLowPart;
+      __u32 uHighPart;
+   } BaseMemoryAddress;
+   __u32 uBoardID;
+   __u16 usSlotNumber;
+   __u8 bControllerClass;
+   __u8 bIoBusType;
+   SDI_IO_BUS_ADDRESS BusAddress;
+   __u8 szSerialNumber[81];
+   __u16 usMajorRevision;
+   __u16 usMinorRevision;
+   __u16 usBuildRevision;
+   __u16 usReleaseRevision;
+   __u16 usBIOSMajorRevision;
+   __u16 usBIOSMinorRevision;
+   __u16 usBIOSBuildRevision;
+   __u16 usBIOSReleaseRevision;
+   __u32 uControllerFlags;
+   __u16 usRromMajorRevision;
+   __u16 usRromMinorRevision;
+   __u16 usRromBuildRevision;
+   __u16 usRromReleaseRevision;
+   __u16 usRromBIOSMajorRevision;
+   __u16 usRromBIOSMinorRevision;
+   __u16 usRromBIOSBuildRevision;
+   __u16 usRromBIOSReleaseRevision;
+   __u8 bReserved[7];
+} SDI_CNTLR_CONFIG, *PSDI_CNTLR_CONFIG;
+
+<font color="#4169E1"><a name="_SDI_CNTLR_CONFIG_BUFFER"></a>typedef struct _SDI_CNTLR_CONFIG_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_CNTLR_CONFIG Configuration;
+} SDI_CNTLR_CONFIG_BUFFER, *PSDI_CNTLR_CONFIG_BUFFER;
+
+// CC_SDI_CNTLR_STATUS
+<font color="#4169E1"><a name="_SDI_CNTLR_STATUS"></a>typedef struct _SDI_CNTLR_STATUS </font>{
+   __u32 uStatus;
+   __u32 uOfflineReason;
+   __u8 bReserved[28];
+} SDI_CNTLR_STATUS, *PSDI_CNTLR_STATUS;
+
+<font color="#4169E1"><a name="_SDI_CNTLR_STATUS_BUFFER"></a>typedef struct _SDI_CNTLR_STATUS_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_CNTLR_STATUS Status;
+} SDI_CNTLR_STATUS_BUFFER, *PSDI_CNTLR_STATUS_BUFFER;
+
+// CC_SDI_FIRMWARE_DOWNLOAD
+<font color="#4169E1"><a name="_SDI_FIRMWARE_DOWNLOAD"></a>typedef struct _SDI_FIRMWARE_DOWNLOAD </font>{
+   __u32 uBufferLength;
+   __u32 uDownloadFlags;
+   __u8 bReserved[32];
+   __u16 usStatus;
+   __u16 usSeverity;
+} SDI_FIRMWARE_DOWNLOAD,   *PSDI_FIRMWARE_DOWNLOAD;
+
+<font color="#4169E1"><a name="_SDI_FIRMWARE_DOWNLOAD_BUFFER"></a>typedef struct _SDI_FIRMWARE_DOWNLOAD_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_FIRMWARE_DOWNLOAD Information;
+   __u8 bDataBuffer[1];
+} SDI_FIRMWARE_DOWNLOAD_BUFFER, *PSDI_FIRMWARE_DOWNLOAD_BUFFER;
+
+// CC_SDI_RAID_INFO
+<font color="#4169E1"><a name="_SDI_RAID_INFO"></a>typedef struct _SDI_RAID_INFO </font>{
+   __u32 uNumRaidSets;
+   __u32 uMaxDrivesPerSet;
+   __u8 bReserved[92];
+} SDI_RAID_INFO, *PSDI_RAID_INFO;
+
+<font color="#4169E1"><a name="_SDI_RAID_INFO_BUFFER"></a>typedef struct _SDI_RAID_INFO_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_RAID_INFO Information;
+} SDI_RAID_INFO_BUFFER, *PSDI_RAID_INFO_BUFFER;
+
+// CC_SDI_GET_RAID_CONFIG
+<font color="#4169E1"><a name="_SDI_RAID_DRIVES"></a>typedef struct _SDI_RAID_DRIVES </font>{
+   __u8 bModel[40];
+   __u8 bFirmware[8];
+   __u8 bSerialNumber[40];
+   __u8 bSASAddress[8];
+   __u8 bSASLun[8];
+   __u8 bDriveStatus;
+   __u8 bDriveUsage;
+   __u8 bReserved[30];
+} SDI_RAID_DRIVES,    *PSDI_RAID_DRIVES;
+
+<font color="#4169E1"><a name="_SDI_RAID_CONFIG"></a>typedef struct _SDI_RAID_CONFIG </font>{
+   __u32 uRaidSetIndex;
+   __u32 uCapacity;
+   __u32 uStripeSize;
+   __u8 bRaidType;
+   __u8 bStatus;
+   __u8 bInformation;
+   __u8 bDriveCount;
+   __u8 bReserved[20];
+   SDI_RAID_DRIVES Drives[1];
+} SDI_RAID_CONFIG,    *PSDI_RAID_CONFIG;
+
+<font color="#4169E1"><a name="_SDI_RAID_CONFIG_BUFFER"></a>typedef struct _SDI_RAID_CONFIG_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_RAID_CONFIG Configuration;
+} SDI_RAID_CONFIG_BUFFER, *PSDI_RAID_CONFIG_BUFFER;
+
+<font color="#B22222">/* * * * * * * * * * SAS HBA Class Structures * * * * * * * * * */</font>
+
+// CC_SDI_GET_PHY_INFO
+<font color="#4169E1"><a name="_SDI_IDENTIFY"></a>typedef struct _SDI_IDENTIFY </font>{
+   __u8 bDeviceType;
+   __u8 bRestricted_Byte1;
+   __u8 bInitiatorPortProtocol;
+   __u8 bTargetPortProtocol;
+   __u8 bRestricted_Bytes4to11[8];
+   __u8 bSASAddress[8];
+   __u8 bPhyIdentifier;
+   __u8 bSignalClass;
+   __u8 bReserved_Bytes22to27[6];
+} SDI_IDENTIFY, *PSDI_IDENTIFY;
+
+<font color="#4169E1"><a name="_SDI_PHY_ENTITY"></a>typedef struct _SDI_PHY_ENTITY </font>{
+   SDI_IDENTIFY Identify;
+   __u8 bPortIdentifier;
+   __u8 bNegotiatedLinkRate;
+   __u8 bMinimumLinkRate;
+   __u8 bMaximumLinkRate;
+   __u8 bPhyChangeCount;
+   __u8 bAutoDiscover;
+   __u8 bReserved[2];
+   SDI_IDENTIFY Attached;
+} SDI_PHY_ENTITY, *PSDI_PHY_ENTITY;
+
+<font color="#4169E1"><a name="_SDI_PHY_INFO"></a>typedef struct _SDI_PHY_INFO </font>{
+   __u8 bNumberOfPhys;
+   __u8 bReserved[3];
+   SDI_PHY_ENTITY Phy[32];
+} SDI_PHY_INFO, *PSDI_PHY_INFO;
+
+<font color="#4169E1"><a name="_SDI_PHY_INFO_BUFFER"></a>typedef struct _SDI_PHY_INFO_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_PHY_INFO Information;
+} SDI_PHY_INFO_BUFFER, *PSDI_PHY_INFO_BUFFER;
+
+// CC_SDI_SET_PHY_INFO
+<font color="#4169E1"><a name="_SDI_SET_PHY_INFO"></a>typedef struct _SDI_SET_PHY_INFO </font>{
+   __u8 bPhyIdentifier;
+   __u8 bNegotiatedLinkRate;
+   __u8 bProgrammedMinimumLinkRate;
+   __u8 bProgrammedMaximumLinkRate;
+   __u8 bSignalClass;
+   __u8 bReserved[3];
+} SDI_SET_PHY_INFO, *PSDI_SET_PHY_INFO;
+
+<font color="#4169E1"><a name="_SDI_SET_PHY_INFO_BUFFER"></a>typedef struct _SDI_SET_PHY_INFO_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_SET_PHY_INFO Information;
+} SDI_SET_PHY_INFO_BUFFER, *PSDI_SET_PHY_INFO_BUFFER;
+
+// CC_SDI_GET_LINK_ERRORS
+<font color="#4169E1"><a name="_SDI_LINK_ERRORS"></a>typedef struct _SDI_LINK_ERRORS </font>{
+   __u8 bPhyIdentifier;
+   __u8 bResetCounts;
+   __u8 bReserved[2];
+   __u32 uInvalidDwordCount;
+   __u32 uRunningDisparityErrorCount;
+   __u32 uLossOfDwordSyncCount;
+   __u32 uPhyResetProblemCount;
+} SDI_LINK_ERRORS, *PSDI_LINK_ERRORS;
+
+<font color="#4169E1"><a name="_SDI_LINK_ERRORS_BUFFER"></a>typedef struct _SDI_LINK_ERRORS_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_LINK_ERRORS Information;
+} SDI_LINK_ERRORS_BUFFER, *PSDI_LINK_ERRORS_BUFFER;
+
+// CC_SDI_SMP_PASSTHROUGH
+<font color="#4169E1"><a name="_SDI_SMP_REQUEST"></a>typedef struct _SDI_SMP_REQUEST </font>{
+   __u8 bFrameType;
+   __u8 bFunction;
+   __u8 bReserved[2];
+   __u8 bAdditionalRequestBytes[1016];
+} SDI_SMP_REQUEST, *PSDI_SMP_REQUEST;
+
+<font color="#4169E1"><a name="_SDI_SMP_RESPONSE"></a>typedef struct _SDI_SMP_RESPONSE </font>{
+   __u8 bFrameType;
+   __u8 bFunction;
+   __u8 bFunctionResult;
+   __u8 bReserved;
+   __u8 bAdditionalResponseBytes[1016];
+} SDI_SMP_RESPONSE, *PSDI_SMP_RESPONSE;
+
+<font color="#4169E1"><a name="_SDI_SMP_PASSTHROUGH"></a>typedef struct _SDI_SMP_PASSTHROUGH </font>{
+   __u8 bPhyIdentifier;
+   __u8 bPortIdentifier;
+   __u8 bConnectionRate;
+   __u8 bReserved;
+   __u8 bDestinationSASAddress[8];
+   __u32 uRequestLength;
+   SDI_SMP_REQUEST Request;
+   __u8 bConnectionStatus;
+   __u8 bReserved2[3];
+   __u32 uResponseBytes;
+   SDI_SMP_RESPONSE Response;
+} SDI_SMP_PASSTHROUGH, *PSDI_SMP_PASSTHROUGH;
+
+<font color="#4169E1"><a name="_SDI_SMP_PASSTHROUGH_BUFFER"></a>typedef struct _SDI_SMP_PASSTHROUGH_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_SMP_PASSTHROUGH Parameters;
+} SDI_SMP_PASSTHROUGH_BUFFER, *PSDI_SMP_PASSTHROUGH_BUFFER;
+
+// CC_SDI_SSP_PASSTHROUGH
+<font color="#4169E1"><a name="_SDI_SSP_PASSTHROUGH"></a>typedef struct _SDI_SSP_PASSTHROUGH </font>{
+   __u8 bPhyIdentifier;
+   __u8 bPortIdentifier;
+   __u8 bConnectionRate;
+   __u8 bReserved;
+   __u8 bDestinationSASAddress[8];
+   __u8 bLun[8];
+   __u8 bCDBLength;
+   __u8 bAdditionalCDBLength;
+   __u8 bReserved2[2];
+   __u8 bCDB[16];
+   __u32 uFlags;
+   __u8 bAdditionalCDB[24];
+   __u32 uDataLength;
+} SDI_SSP_PASSTHROUGH,  *PSDI_SSP_PASSTHROUGH;
+
+<font color="#4169E1"><a name="_SDI_SSP_PASSTHROUGH_STATUS"></a>typedef struct _SDI_SSP_PASSTHROUGH_STATUS </font>{
+   __u8 bConnectionStatus;
+   __u8 bReserved[3];
+   __u8 bDataPresent;
+   __u8 bStatus;
+   __u8 bResponseLength[2];
+   __u8 bResponse[256];
+} SDI_SSP_PASSTHROUGH_STATUS, *PSDI_SSP_PASSTHROUGH_STATUS;
+
+<font color="#4169E1"><a name="_SDI_SSP_PASSTHROUGH_BUFFER"></a>typedef struct _SDI_SSP_PASSTHROUGH_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_SSP_PASSTHROUGH Parameters;
+   SDI_SSP_PASSTHROUGH_STATUS Status;
+   __u32 uDataBytes;
+   __u8 bDataBuffer[1];
+} SDI_SSP_PASSTHROUGH_BUFFER, *PSDI_SSP_PASSTHROUGH_BUFFER;
+
+// CC_SDI_STP_PASSTHROUGH
+<font color="#4169E1"><a name="_SDI_STP_PASSTHROUGH"></a>typedef struct _SDI_STP_PASSTHROUGH </font>{
+   __u8 bPhyIdentifier;
+   __u8 bPortIdentifier;
+   __u8 bConnectionRate;
+   __u8 bReserved;
+   __u8 bDestinationSASAddress[8];
+   __u8 bReserved2[4];
+   __u8 bCommandFIS[20];
+   __u32 uFlags;
+   __u32 uDataLength;
+} SDI_STP_PASSTHROUGH, *PSDI_STP_PASSTHROUGH;
+
+<font color="#4169E1"><a name="_SDI_STP_PASSTHROUGH_STATUS"></a>typedef struct _SDI_STP_PASSTHROUGH_STATUS </font>{
+   __u8 bConnectionStatus;
+   __u8 bReserved[3];
+   __u8 bStatusFIS[20];
+   __u32 uSCR[16];
+} SDI_STP_PASSTHROUGH_STATUS, *PSDI_STP_PASSTHROUGH_STATUS;
+
+<font color="#4169E1"><a name="_SDI_STP_PASSTHROUGH_BUFFER"></a>typedef struct _SDI_STP_PASSTHROUGH_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_STP_PASSTHROUGH Parameters;
+   SDI_STP_PASSTHROUGH_STATUS Status;
+   __u32 uDataBytes;
+   __u8 bDataBuffer[1];
+} SDI_STP_PASSTHROUGH_BUFFER, *PSDI_STP_PASSTHROUGH_BUFFER;
+
+// CC_SDI_GET_SATA_SIGNATURE
+<font color="#4169E1"><a name="_SDI_SATA_SIGNATURE"></a>typedef struct _SDI_SATA_SIGNATURE </font>{
+   __u8 bPhyIdentifier;
+   __u8 bReserved[3];
+   __u8 bSignatureFIS[20];
+} SDI_SATA_SIGNATURE, *PSDI_SATA_SIGNATURE;
+
+<font color="#4169E1"><a name="_SDI_SATA_SIGNATURE_BUFFER"></a>typedef struct _SDI_SATA_SIGNATURE_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_SATA_SIGNATURE Signature;
+} SDI_SATA_SIGNATURE_BUFFER, *PSDI_SATA_SIGNATURE_BUFFER;
+
+// CC_SDI_GET_SCSI_ADDRESS
+<font color="#4169E1"><a name="_SDI_GET_SCSI_ADDRESS_BUFFER"></a>typedef struct _SDI_GET_SCSI_ADDRESS_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   __u8 bSASAddress[8];
+   __u8 bSASLun[8];
+   __u8 bHostIndex;
+   __u8 bPathId;
+   __u8 bTargetId;
+   __u8 bLun;
+} SDI_GET_SCSI_ADDRESS_BUFFER,    *PSDI_GET_SCSI_ADDRESS_BUFFER;
+
+// CC_SDI_GET_DEVICE_ADDRESS
+<font color="#4169E1"><a name="_SDI_GET_DEVICE_ADDRESS_BUFFER"></a>typedef struct _SDI_GET_DEVICE_ADDRESS_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   __u8 bHostIndex;
+   __u8 bPathId;
+   __u8 bTargetId;
+   __u8 bLun;
+   __u8 bSASAddress[8];
+   __u8 bSASLun[8];
+} SDI_GET_DEVICE_ADDRESS_BUFFER, *PSDI_GET_DEVICE_ADDRESS_BUFFER;
+
+// CC_SDI_TASK_MANAGEMENT
+<font color="#4169E1"><a name="_SDI_SSP_TASK_IU"></a>typedef struct _SDI_SSP_TASK_IU </font>{
+   __u8 bHostIndex;
+   __u8 bPathId;
+   __u8 bTargetId;
+   __u8 bLun;
+   __u32 uFlags;
+   __u32 uQueueTag;
+   __u32 uReserved;
+   __u8 bTaskManagementFunction;
+   __u8 bReserved[7];
+   __u32 uInformation;
+} SDI_SSP_TASK_IU, *PSDI_SSP_TASK_IU;
+
+<font color="#4169E1"><a name="_SDI_SSP_TASK_IU_BUFFER"></a>typedef struct _SDI_SSP_TASK_IU_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_SSP_TASK_IU Parameters;
+   SDI_SSP_PASSTHROUGH_STATUS Status;
+} SDI_SSP_TASK_IU_BUFFER, *PSDI_SSP_TASK_IU_BUFFER;
+
+// CC_SDI_GET_CONNECTOR_INFO
+<font color="#4169E1"><a name="_SDI_GET_CONNECTOR_INFO"></a>typedef struct _SDI_GET_CONNECTOR_INFO </font>{
+   __u32 uPinout;
+   __u8 bConnector[16];
+   __u8 bLocation;
+   __u8 bReserved[15];
+} SDI_CONNECTOR_INFO, *PSDI_CONNECTOR_INFO;
+
+<font color="#4169E1"><a name="_SDI_CONNECTOR_INFO_BUFFER"></a>typedef struct _SDI_CONNECTOR_INFO_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   SDI_CONNECTOR_INFO Reference[32];
+} SDI_CONNECTOR_INFO_BUFFER,   *PSDI_CONNECTOR_INFO_BUFFER;
+
+// CC_SDI_PHY_CONTROL
+<font color="#4169E1"><a name="_SDI_CHARACTER"></a>typedef struct _SDI_CHARACTER </font>{
+   __u8 bTypeFlags;
+   __u8 bValue;
+} SDI_CHARACTER, *PSDI_CHARACTER;
+
+<font color="#4169E1"><a name="_SDI_PHY_CONTROL"></a>typedef struct _SDI_PHY_CONTROL </font>{
+   __u8 bType;
+   __u8 bRate;
+   __u8 bReserved[6];
+   __u32 uVendorUnique[8];
+   __u32 uTransmitterFlags;
+   __i8 bTransmitterAmplitude;
+   __i8 bTransmitterPreemphasis;
+   __i8 bTransmitterSlewRate;
+   __i8 bTransmitterReserved[13];
+   __u8 bTransmitterVendorUnique[64];
+   __u32 uReceiverFlags;
+   __i8 bReceiverThreshold;
+   __i8 bReceiverEqualizationGain;
+   __i8 bReceiverReserved[14];
+   __u8 bReceiverVendorUnique[64];
+   __u32 uPatternFlags;
+   __u8 bFixedPattern;
+   __u8 bUserPatternLength;
+   __u8 bPatternReserved[6];
+   SDI_CHARACTER UserPatternBuffer[16];
+} SDI_PHY_CONTROL, *PSDI_PHY_CONTROL;
+
+<font color="#4169E1"><a name="_SDI_PHY_CONTROL_BUFFER"></a>typedef struct _SDI_PHY_CONTROL_BUFFER </font>{
+   IOCTL_HEADER IoctlHeader;
+   __u32 uFunction;
+   __u8 bPhyIdentifier;
+   __u16 usLengthOfControl;
+   __u8 bNumberOfControls;
+   __u8 bReserved[4];
+   __u32 uLinkFlags;
+   __u8 bSpinupRate;
+   __u8 bLinkReserved[7];
+   __u32 uVendorUnique[8];
+   SDI_PHY_CONTROL Control[1];
+} SDI_PHY_CONTROL_BUFFER, *PSDI_PHY_CONTROL_BUFFER;
+
+<font color="#A020F0">#pragma SDI_END_PACK</font>
+
+<font color="#A020F0">#endif // _SDI_H_</font>
+</pre>
+</body>
+
+</html>
